@@ -728,8 +728,12 @@ EndDeviceLoraMac::OpenSecondReceiveWindow (void)
 
   m_phy->GetObject<EndDeviceLoraPhy> ()->SetFrequency
     (m_secondReceiveWindowFrequency);
-  m_phy->GetObject<EndDeviceLoraPhy> ()->SetSpreadingFactor (GetSfFromDataRate
-                                                               (m_secondReceiveWindowDataRate));
+
+  // Set SF to the same SF of the first receiving window
+  uint8_t sf_second_window = GetSfFromDataRate (GetFirstReceiveWindowDataRate ());
+  m_phy->GetObject<EndDeviceLoraPhy> ()->SetSpreadingFactor (sf_second_window);
+  // m_phy->GetObject<EndDeviceLoraPhy> ()->SetSpreadingFactor (GetSfFromDataRate
+  //                                                              (m_secondReceiveWindowDataRate));
 
   // Schedule return to sleep after "at least the time required by the end
   // device's radio transceiver to effectively detect a downlink preamble"

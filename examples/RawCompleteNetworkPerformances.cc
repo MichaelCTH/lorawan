@@ -836,14 +836,14 @@ int main (int argc, char *argv[])
   *  Results  *
   *************/
 
-  // Total statistics of the network 
+  // Total statistics of the network
   std::cout << nDevices << " " << appPeriodSeconds << " ";
 
   if (transientPeriods == 0)
   {
-    std::cout<< totalPktsSent 
-      << " " << received << " " << interfered << " " << noMoreReceivers 
-      << " " << underSensitivity <<" ";
+    std::cout<< totalPktsSent
+      << " " << received << " " << interfered << " " << noMoreReceivers
+      << " " << underSensitivity <<"\n";
   }
 
   // Statistics ignoring transient
