@@ -144,6 +144,16 @@ EndDeviceLoraMac::Send (Ptr<Packet> packet)
       return;
     }
 
+  // Craft LoraTxParameters object
+  LoraTxParameters params;
+  params.sf = GetSfFromDataRate (m_dataRate);
+  params.headerDisabled = m_headerDisabled;
+  params.codingRate = m_codingRate;
+  params.bandwidthHz = GetBandwidthFromDataRate (m_dataRate);
+  params.nPreamble = m_nPreambleSymbols;
+  params.crcEnabled = 1;
+  params.lowDataRateOptimizationEnabled = 0;
+
   // If it is not possible to transmit now because of the duty cycle,
   // or because we are receiving, schedule a tx/retx later
 
@@ -153,7 +163,8 @@ EndDeviceLoraMac::Send (Ptr<Packet> packet)
       // Add the ACK_TIMEOUT random delay if it is a retransmission.
       if (m_retxParams.waitingAck)
         {
-          double ack_timeout = m_uniformRV->GetValue (1,3);
+          // double ack_timeout = m_uniformRV->GetValue (1,3);
+          double ack_timeout = m_phy->GetOnAirTime(packet, params).GetSeconds() * 2;
           netxTxDelay = netxTxDelay + Seconds (ack_timeout);
         }
       postponeTransmission (netxTxDelay, packet);
