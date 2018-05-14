@@ -62,6 +62,7 @@ int noMoreReceivers = 0;
 int interfered = 0;
 int received = 0;
 int underSensitivity = 0;
+int lostBecauseTx = 0;
 int totalPktsSent = 0;
 
 // RetransmissionParameters
@@ -83,6 +84,7 @@ enum PacketOutcome {
   INTERFERED,
   NO_MORE_RECEIVERS,
   UNDER_SENSITIVITY,
+  LOST_BECAUSE_TX,
   UNSET
 };
 
@@ -151,6 +153,11 @@ CheckReceptionByAllGWsComplete (std::map<Ptr<Packet const>, PacketStatus>::itera
                 interfered += 1;
                 break;
               }
+            case LOST_BECAUSE_TX:
+              {
+                lostBecauseTx += 1;
+                break;
+              }
             case UNSET:
               {
                 break;
@@ -203,7 +210,7 @@ CountRetransmissions (Time transient, Time simulationTime, MacPacketData
   std::vector<int> failedReTxAmounts (8, 0);
   // vector performanceAmounts will contain - for the interval given in the input of the function,
   // totPacketsSent receivedPackets interferedPackets noMoreGwPackets underSensitivityPackets
-  std::vector<int> performancesAmounts (5, 0);
+  std::vector<int> performancesAmounts (6, 0);
   Time delaySum = Seconds (0);
   Time ackDelaySum = Seconds(0);
 
@@ -288,6 +295,11 @@ CountRetransmissions (Time transient, Time simulationTime, MacPacketData
             performancesAmounts.at(4)++;
             break;
           }
+      case LOST_BECAUSE_TX:
+        {
+          performancesAmounts.at(5)++;
+          break;
+        }
         case UNSET:
           {
             break;
@@ -445,6 +457,20 @@ UnderSensitivityCallback (Ptr<Packet const> packet, uint32_t systemId)
   CheckReceptionByAllGWsComplete (it);
 
   phyPacketOutcomes.push_back (std::pair<Time, PacketOutcome> (Simulator::Now (), UNDER_SENSITIVITY));
+}
+
+void
+LostBecauseTxCallback (Ptr<Packet const> packet, uint32_t systemId)
+{
+  // NS_LOG_INFO ("A packet arrived at the gateway under sensitivity at gateway " << systemId);
+
+  std::map<Ptr<Packet const>, PacketStatus>::iterator it = packetTracker.find (packet);
+  (*it).second.outcomes.at (systemId - nDevices) = LOST_BECAUSE_TX;
+  (*it).second.outcomeNumber += 1;
+
+  CheckReceptionByAllGWsComplete (it);
+
+  phyPacketOutcomes.push_back (std::pair<Time, PacketOutcome> (Simulator::Now (), LOST_BECAUSE_TX));
 }
 
 time_t oldtime = std::time (0);
@@ -703,6 +729,8 @@ int main (int argc, char *argv[])
                                          MakeCallback (&NoMoreReceiversCallback));
       gwPhy->TraceConnectWithoutContext ("LostPacketBecauseUnderSensitivity",
                                          MakeCallback (&UnderSensitivityCallback));
+      gwPhy->TraceConnectWithoutContext ("NoReceptionBecauseTransmitting",
+                                         MakeCallback (&LostBecauseTxCallback));
 
       Ptr<GatewayLoraMac> gwMac = loraNetDevice->GetMac ()->GetObject<GatewayLoraMac> ();
       gwMac->TraceConnectWithoutContext ("ReceivedPacket",
@@ -843,7 +871,7 @@ int main (int argc, char *argv[])
   {
     std::cout<< totalPktsSent
       << " " << received << " " << interfered << " " << noMoreReceivers
-      << " " << underSensitivity <<"\n";
+             << " " << underSensitivity << " " << lostBecauseTx << "\n";
   }
 
   // Statistics ignoring transient
