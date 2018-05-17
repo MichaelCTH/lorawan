@@ -49,7 +49,7 @@ NS_LOG_COMPONENT_DEFINE ("CompleteNetworkPerformances");
 int nDevices = 2000;
 int gatewayRings = 1;
 int nGateways = 3*gatewayRings*gatewayRings-3*gatewayRings+1;
-double radius = 19200;
+double radius = 6300;
 double gatewayRadius = 7500/((gatewayRings-1)*2+1);
 double simulationTime = 600;
 int appPeriodSeconds = 600;
@@ -590,9 +590,9 @@ int main (int argc, char *argv[])
   ************************/
 
   // Create the lora channel object
-  Ptr<OkumuraHataPropagationLossModel> loss = CreateObject<OkumuraHataPropagationLossModel> ();
-  loss->SetAttribute ("Frequency", DoubleValue (868.1e6));
-  loss->SetAttribute ("Environment", EnumValue (OpenAreasEnvironment));
+  Ptr<LogDistancePropagationLossModel> loss = CreateObject<LogDistancePropagationLossModel> ();
+  loss->SetPathLossExponent (3.76);
+  loss->SetReference (1, 8.1);
 
   if(shadowingEnabled)
   {
