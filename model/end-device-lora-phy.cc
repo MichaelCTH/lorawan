@@ -61,8 +61,8 @@ EndDeviceLoraPhy::GetTypeId (void)
 // These will then be changed by helpers.
 EndDeviceLoraPhy::EndDeviceLoraPhy () :
   m_state (SLEEP),
-  m_frequency (868.1),
-  m_sf (7)
+  m_frequency (902.0),
+  m_sf (12)
 {
 }
 
@@ -70,11 +70,11 @@ EndDeviceLoraPhy::~EndDeviceLoraPhy ()
 {
 }
 
-// Downlink sensitivity (from SX1272 datasheet)
+// Downlink sensitivity (from SX1276 datasheet)
 // {SF7, SF8, SF9, SF10, SF11, SF12}
-// These sensitivites are for a bandwidth of 125000 Hz
+// These sensitivites are for a bandwidth of 500000 Hz
 const double EndDeviceLoraPhy::sensitivity[6] =
-{-124, -127, -130, -133, -135, -137};
+{-116, -119, -122, -125, -128, -130};
 
 void
 EndDeviceLoraPhy::SetSpreadingFactor (uint8_t sf)

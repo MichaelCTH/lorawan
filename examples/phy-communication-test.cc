@@ -46,7 +46,7 @@ void Interference (Ptr<const Packet> packet, uint32_t node)
 void NoMoreDemodulators (Ptr<const Packet> packet, uint32_t node)
 {
   NS_LOG_FUNCTION (packet << node);
-
+  NS_LOG_DEBUG("## TC CALL GOT!!");
   m_noMoreDemodulatorsCalls++;
 }
 
@@ -97,9 +97,9 @@ void Reset (void)
   edPhy2 = CreateObject<EndDeviceLoraPhy> ();
   edPhy3 = CreateObject<EndDeviceLoraPhy> ();
 
-  edPhy1->SetFrequency (868.1);
-  edPhy2->SetFrequency (868.1);
-  edPhy3->SetFrequency (868.1);
+  edPhy1->SetFrequency (902.0);
+  edPhy2->SetFrequency (902.0);
+  edPhy3->SetFrequency (902.0);
 
   Ptr<ConstantPositionMobilityModel> mob1 = CreateObject<ConstantPositionMobilityModel> ();
   Ptr<ConstantPositionMobilityModel> mob2 = CreateObject<ConstantPositionMobilityModel> ();
@@ -137,9 +137,9 @@ void Reset (void)
   edPhy2->TraceConnectWithoutContext ("LostPacketBecauseInterference", MakeCallback (&Interference));
   edPhy3->TraceConnectWithoutContext ("LostPacketBecauseInterference", MakeCallback (&Interference));
 
-  edPhy1->TraceConnectWithoutContext ("LostPacketBecauseNoMoreReceivers", MakeCallback (&NoMoreDemodulators));
-  edPhy2->TraceConnectWithoutContext ("LostPacketBecauseNoMoreReceivers", MakeCallback (&NoMoreDemodulators));
-  edPhy3->TraceConnectWithoutContext ("LostPacketBecauseNoMoreReceivers", MakeCallback (&NoMoreDemodulators));
+  edPhy1->TraceConnectWithoutContext ("LostPacketBecauseWrongFrequency", MakeCallback (&NoMoreDemodulators));
+  edPhy2->TraceConnectWithoutContext ("LostPacketBecauseWrongFrequency", MakeCallback (&NoMoreDemodulators));
+  edPhy3->TraceConnectWithoutContext ("LostPacketBecauseWrongFrequency", MakeCallback (&NoMoreDemodulators));
 }
 
 int main (int argc, char *argv[])
@@ -169,7 +169,7 @@ int main (int argc, char *argv[])
   /////////////////////////////
 
   Simulator::Schedule (Seconds (2), &EndDeviceLoraPhy::Send, edPhy1, packet,
-                       txParams, 868.1, 14);
+                       txParams, 902.0, 14);
 
   Simulator::Stop (Hours (2)); Simulator::Run (); Simulator::Destroy ();
 
@@ -182,7 +182,7 @@ int main (int argc, char *argv[])
   edPhy2->SwitchToSleep ();
 
   Simulator::Schedule (Seconds (2), &EndDeviceLoraPhy::Send, edPhy1, packet,
-                       txParams, 868.1, 14);
+                       txParams, 902.0, 14);
 
   Simulator::Stop (Hours (2)); Simulator::Run (); Simulator::Destroy ();
 
@@ -197,7 +197,7 @@ int main (int argc, char *argv[])
     ()->SetPosition (Vector (2990, 0, 0));
 
   Simulator::Schedule (Seconds (2), &EndDeviceLoraPhy::Send, edPhy1, packet,
-                       txParams, 868.1, 14);
+                       txParams, 902.0, 14);
 
   Simulator::Stop (Hours (2)); Simulator::Run (); Simulator::Destroy ();
 
@@ -206,11 +206,11 @@ int main (int argc, char *argv[])
   Reset ();
 
   // Try again using a packet with higher SF
-  txParams.sf = 8;
+  txParams.sf = 10;
   edPhy2->GetMobility ()->GetObject<ConstantPositionMobilityModel> ()->SetPosition (Vector (2990, 0, 0));
 
   Simulator::Schedule (Seconds (2), &EndDeviceLoraPhy::Send, edPhy1, packet,
-                       txParams, 868.1, 14);
+                       txParams, 902.0, 14);
 
   Simulator::Stop (Hours (2)); Simulator::Run (); Simulator::Destroy ();
 
@@ -220,12 +220,12 @@ int main (int argc, char *argv[])
 
   // Packets can be destroyed by interference
 
-  txParams.sf = 8;
+  txParams.sf = 12;
 
   Simulator::Schedule (Seconds (2), &EndDeviceLoraPhy::Send, edPhy1, packet,
-                       txParams, 868.1, 14);
+                       txParams, 902.0, 14);
   Simulator::Schedule (Seconds (2), &EndDeviceLoraPhy::Send, edPhy3, packet,
-                       txParams, 868.1, 14);
+                       txParams, 902.0, 14);
 
   Simulator::Stop (Hours (2)); Simulator::Run (); Simulator::Destroy ();
 
@@ -236,7 +236,7 @@ int main (int argc, char *argv[])
   // Packets can be lost because the PHY is not listening on the right frequency
 
   Simulator::Schedule (Seconds (2), &EndDeviceLoraPhy::Send, edPhy1, packet,
-                       txParams, 868.3, 14);
+                       txParams, 902.6, 14);
 
   Simulator::Stop (Hours (2)); Simulator::Run (); Simulator::Destroy ();
 
@@ -249,7 +249,7 @@ int main (int argc, char *argv[])
 
   // The very same packet arrives at the other PHY
   Simulator::Schedule (Seconds (2), &EndDeviceLoraPhy::Send, edPhy1, packet,
-                       txParams, 868.1, 14);
+                       txParams, 902.0, 14);
 
   Simulator::Stop (Hours (2)); Simulator::Run (); Simulator::Destroy ();
 
@@ -263,7 +263,7 @@ int main (int argc, char *argv[])
   // PHY switches to STANDBY after TX and RX
 
   Simulator::Schedule (Seconds (2), &EndDeviceLoraPhy::Send, edPhy1, packet,
-                       txParams, 868.1, 14);
+                       txParams, 902.0, 14);
 
   Simulator::Stop (Hours (2)); Simulator::Run (); Simulator::Destroy ();
 
